@@ -8,11 +8,28 @@ import io.realm.Realm
 
 class CreateBookViewModel: ViewModel() {
 
+    enum class InputField {
+        TITLE {
+            override fun errorMessage(): String = "タイトルが入力されていません"
+        },
+        AUTHOR {
+            override fun errorMessage(): String = "著者名が入力されていません"
+        },
+        PRICE {
+            override fun errorMessage(): String = "金額が入力されていません"
+        },
+        DESCRIPTION {
+            override fun errorMessage(): String = "説明が入力されていません"
+        };
+
+        abstract fun errorMessage() : String
+    }
+
     private val _title: MutableLiveData<String> = MutableLiveData()
     private val _author: MutableLiveData<String> = MutableLiveData()
     private val _price: MutableLiveData<Int> = MutableLiveData()
     private val _description: MutableLiveData<String> = MutableLiveData()
-    private val _errorMessage: MutableLiveData<String> = MutableLiveData()
+    private val _errorInput: MutableLiveData<InputField> = MutableLiveData()
     private val _onCompleteCreating: MutableLiveData<Unit> = MutableLiveData()
 
     private val realm: Realm = Realm.getDefaultInstance()
@@ -25,8 +42,8 @@ class CreateBookViewModel: ViewModel() {
         get() = _price
     val description: LiveData<String>
         get() = _description
-    val errorMessage: LiveData<String>
-        get() = _errorMessage
+    val errorInput: LiveData<InputField>
+        get() = _errorInput
     val onCompleteCreating: LiveData<Unit>
         get() = _onCompleteCreating
 
@@ -48,12 +65,12 @@ class CreateBookViewModel: ViewModel() {
 
     fun createBook() {
         if (
-            checkInputAndShowError(title.value, "タイトルが入力されていません") &&
-            checkInputAndShowError(author.value, "著者名が入力されていません") &&
-                    checkInputAndShowError(price.value.toString(), "値段が入力されていません") &&
-                    checkInputAndShowError(description.value, "説明が入力されていません")
+            checkInputAndShowError(title.value, InputField.TITLE) &&
+            checkInputAndShowError(author.value, InputField.AUTHOR) &&
+                    checkInputAndShowError(price.value.toString(), InputField.PRICE) &&
+                    checkInputAndShowError(description.value,  InputField.DESCRIPTION)
         ) {
-            realm.executeTransaction {
+            realm.executeTransactionAsync {
                 val book = it.createObject(Book::class.java)
                 book.title = title.value!!
                 book.author = author.value!!
@@ -64,9 +81,9 @@ class CreateBookViewModel: ViewModel() {
         }
     }
 
-    fun checkInputAndShowError(input: String?, errorMessage: String): Boolean {
+    fun checkInputAndShowError(input: String?, inputField: InputField): Boolean {
         if (input?.isEmpty() ?: true) {
-            _errorMessage.postValue(errorMessage)
+            _errorInput.postValue(inputField)
             return false
         }
         return true

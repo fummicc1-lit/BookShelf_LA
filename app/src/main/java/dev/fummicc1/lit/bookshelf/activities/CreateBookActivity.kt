@@ -4,7 +4,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.viewModels
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
+import com.google.android.material.textfield.TextInputLayout
 import dev.fummicc1.lit.bookshelf.R
 import dev.fummicc1.lit.bookshelf.viewmodels.CreateBookViewModel
 import kotlinx.android.synthetic.main.activity_create_book.*
@@ -17,29 +19,82 @@ class CreateBookActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_book)
 
+        // ToolBarのタイトルを空文字に設定
+        title = ""
+
         makeBackButtonEnable()
 
         viewModel.title.observe(this, Observer {
-
+            if (it.isNotEmpty()) {
+                titleInputLayout.error = null
+            }
         })
 
         viewModel.author.observe(this, Observer {
-
-        })
-
-        viewModel.errorMessage.observe(this, Observer {
-
+            if (it.isNotEmpty()) {
+                authorInputLayout.error = null
+            }
         })
 
         viewModel.price.observe(this, Observer {
-
+            priceInputLayout.error = null
         })
 
         viewModel.description.observe(this, Observer {
-
+            if (it.isNotEmpty()) {
+                descriptionInputLayout.error = null
+            }
         })
 
+        viewModel.errorInput.observe(this, Observer {
+            val errorInput: TextInputLayout = when (it) {
+                CreateBookViewModel.InputField.TITLE -> titleInputLayout
+                    CreateBookViewModel.InputField.AUTHOR -> authorInputLayout
+                    CreateBookViewModel.InputField.PRICE -> priceInputLayout
+                    CreateBookViewModel.InputField.DESCRIPTION -> descriptionInputLayout
+            }
+            errorInput.error = it.errorMessage()
+        })
 
+        viewModel.onCompleteCreating.observe(this, Observer {
+            finish()
+        })
+
+        titleEdit.addTextChangedListener {
+            it?.toString()?.let {
+                viewModel.updateTitle(it)
+            }
+        }
+
+        authorEdit.addTextChangedListener {
+            it?.toString()?.let {
+                viewModel.updateAuthor(it)
+            }
+        }
+
+        priceEdit.addTextChangedListener {
+            kotlin.runCatching {
+                it?.toString()?.let {
+                    Integer.parseInt(it)
+                }
+            }.onSuccess {
+                it?.let {
+                    viewModel.updatePrice(it)
+                }
+            }.onFailure {
+                priceInputLayout.error = it.localizedMessage
+            }
+        }
+
+        descriptionEdit.addTextChangedListener {
+            it?.toString()?.let {
+                viewModel.updateDescription(it)
+            }
+        }
+
+        createBookButton.setOnClickListener {
+            viewModel.createBook()
+        }
     }
 
     //　戻るボタンを有効にする

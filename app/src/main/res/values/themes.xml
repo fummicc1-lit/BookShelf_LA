@@ -24,4 +24,12 @@
         <item name="android:textColor">@color/black_700</item>
     </style>
 
+    <style name="MyTextInputLayout" parent="TextAppearance.AppCompat">
+        <item name="boxBackgroundColor">@color/gray</item>
+        <item name="hintTextColor">@color/primary</item>
+        <item name="colorControlNormal">@color/primary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="colorControlActivated">@color/primary</item>
+    </style>
+
 </resources>

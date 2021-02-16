@@ -5,19 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import dev.fummicc1.lit.bookshelf.datas.Book
 import io.realm.Realm
+import io.realm.RealmResults
 
 class BookListViewModel: ViewModel() {
 
-    private val _bookList: MutableLiveData<List<Book>> = MutableLiveData()
-    val bookList: LiveData<List<Book>>
-        get() = _bookList
+    val bookList: RealmResults<Book>
 
     private val realm: Realm = Realm.getDefaultInstance()
 
     init {
         realm.where(Book::class.java).apply {
-            val all = this.findAllAsync()
-            _bookList.postValue(all)
+             bookList = this.findAllAsync()
         }
     }
 
