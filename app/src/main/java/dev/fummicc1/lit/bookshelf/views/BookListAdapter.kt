@@ -43,12 +43,12 @@ class BookListAdapter(val context: Context, val bookList: RealmResults<Book>): R
         holder.authorTextView.text = book.author
         val now = LocalDateTime.now()
         val bookLocalDateTime = LocalDateTime.ofInstant(book.createdAt.toInstant(), ZoneId.systemDefault())
-        val minute: Long = ChronoUnit.MINUTES.between(now, bookLocalDateTime)
-        val hour: Long = ChronoUnit.HOURS.between(now, bookLocalDateTime)
+        val minute: Long = ChronoUnit.MINUTES.between(bookLocalDateTime, now)
+        val hour: Long = ChronoUnit.HOURS.between(bookLocalDateTime, now)
         val timeText: String
         if (hour > 0 && hour < 24) {
             timeText = "${hour}時間前"
-        } else if (minute >= 0) {
+        } else if (minute >= 0 && minute < 60) {
             timeText = "${minute}分前"
         } else {
             timeText = DateFormat.getDateInstance().format(book.createdAt)

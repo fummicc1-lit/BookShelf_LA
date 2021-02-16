@@ -32,6 +32,4 @@ class BookListActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
-
-
 }
