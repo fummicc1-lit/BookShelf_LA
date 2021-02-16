@@ -1,5 +1,6 @@
 package dev.fummicc1.lit.bookshelf.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -26,7 +27,10 @@ class BookListActivity : AppCompatActivity() {
             adapter.updateBookList(it)
         })
 
-
+        moveToCreateBookButton.setOnClickListener {
+            val intent = Intent(this, CreateBookActivity::class.java)
+            startActivity(intent)
+        }
     }
 
 
