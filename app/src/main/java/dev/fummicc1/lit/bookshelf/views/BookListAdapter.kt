@@ -5,7 +5,6 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import dev.fummicc1.lit.bookshelf.R
@@ -46,7 +45,7 @@ class BookListAdapter(
         holder.titleTextView.text = book.title
         holder.authorTextView.text = book.author
         val now = LocalDateTime.now()
-        val bookLocalDateTime = LocalDateTime.ofInstant(book.createdAt.toInstant(), ZoneId.systemDefault())
+        val bookLocalDateTime = LocalDateTime.ofInstant(book.updatedAt.toInstant(), ZoneId.systemDefault())
         val minute: Long = ChronoUnit.MINUTES.between(bookLocalDateTime, now)
         val hour: Long = ChronoUnit.HOURS.between(bookLocalDateTime, now)
         val timeText: String
@@ -55,7 +54,7 @@ class BookListAdapter(
         } else if (minute >= 0 && minute < 60) {
             timeText = "${minute}分前"
         } else {
-            timeText = DateFormat.getDateInstance().format(book.createdAt)
+            timeText = DateFormat.getDateInstance().format(book.updatedAt)
         }
         holder.timeTextView.text = timeText
 

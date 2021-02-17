@@ -2,6 +2,7 @@ package dev.fummicc1.lit.bookshelf.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dev.fummicc1.lit.bookshelf.datas.Book
 import io.realm.Realm
@@ -35,6 +36,8 @@ class CreateBookViewModel: ViewModel() {
 
     private val realm: Realm = Realm.getDefaultInstance()
 
+    var editBookId: String? = null
+
     val title: LiveData<String>
         get() = _title
     val author: LiveData<String>
@@ -64,23 +67,56 @@ class CreateBookViewModel: ViewModel() {
         _author.postValue(author)
     }
 
-    fun createBook() {
+    private fun updateBook(bookId: String) {
+        realm.executeTransactionAsync {
+            it.where(Book::class.java)
+                .equalTo("id", bookId)
+                .findFirst()
+                ?.let {
+                    it.title = _title.value ?: ""
+                    it.author = _author.value ?: ""
+                    it.price = _price.value ?: 0
+                    it.description = _description.value ?: ""
+                    it.updatedAt = Date()
+                }
+        }
+    }
+
+    fun persistBook() {
+
         if (
-            checkInputAndShowError(title.value, InputField.TITLE) &&
-            checkInputAndShowError(author.value, InputField.AUTHOR) &&
-                    checkInputAndShowError(price.value.toString(), InputField.PRICE) &&
-                    checkInputAndShowError(description.value,  InputField.DESCRIPTION)
+            checkInputAndShowError(_title.value, InputField.TITLE) &&
+            checkInputAndShowError(_author.value, InputField.AUTHOR) &&
+                    checkInputAndShowError(_price.value.toString(), InputField.PRICE) &&
+                    checkInputAndShowError(_description.value,  InputField.DESCRIPTION)
         ) {
-            realm.executeTransactionAsync {
-                val book = it.createObject(Book::class.java, UUID.randomUUID().toString())
-                book.title = title.value!!
-                book.author = author.value!!
-                book.price = price.value!!
-                book.description = description.value!!
+            editBookId?.let {
+                // 編集状態であればBookをアップデートする
+                updateBook(it)
+                _onCompleteCreating.postValue(Unit)
+                return
             }
+            createBook()
             _onCompleteCreating.postValue(Unit)
         }
     }
+
+    fun createBook() {
+        realm.executeTransactionAsync {
+            val book = it.createObject(Book::class.java, UUID.randomUUID().toString())
+            book.title = _title.value!!
+            book.author = _author.value!!
+            book.price = _price.value!!
+            book.description = _description.value!!
+        }
+    }
+
+    fun fetchBook(id: String): Book? {
+        return realm.where(Book::class.java)
+            .equalTo("id", id)
+            .findFirst()
+    }
+
 
     fun checkInputAndShowError(input: String?, inputField: InputField): Boolean {
         if (input?.isEmpty() ?: true) {

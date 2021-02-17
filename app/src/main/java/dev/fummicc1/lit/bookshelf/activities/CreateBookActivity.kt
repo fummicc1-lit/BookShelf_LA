@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer
 import com.google.android.material.textfield.TextInputLayout
 import dev.fummicc1.lit.bookshelf.R
 import dev.fummicc1.lit.bookshelf.viewmodels.CreateBookViewModel
+import dev.fummicc1.lit.bookshelf.viewmodels.DetailBookViewModel
 import kotlinx.android.synthetic.main.activity_create_book.*
 
 class CreateBookActivity : AppCompatActivity() {
@@ -18,11 +19,13 @@ class CreateBookActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_book)
-
+        
         // ToolBarのタイトルを空文字に設定
         title = ""
 
         makeBackButtonEnable()
+        
+        configureInitialStateIfBookExists()
 
         viewModel.title.observe(this, Observer {
             if (it.isNotEmpty()) {
@@ -93,8 +96,28 @@ class CreateBookActivity : AppCompatActivity() {
         }
 
         createBookButton.setOnClickListener {
-            viewModel.createBook()
+            viewModel.persistBook()
         }
+    }
+
+    // もし前の画面からBookIdを渡されていた場合、初期状態を変更する
+    fun configureInitialStateIfBookExists() {
+        val bookId = intent.getParcelableExtra<DetailBookViewModel.EditDestinationModel>("book_id")?.bookId
+        if (bookId == null) return
+        val book = viewModel.fetchBook(bookId)
+        if (book == null) return
+        viewModel.updateTitle(book.title)
+        viewModel.updateAuthor(book.author)
+        viewModel.updatePrice(book.price)
+        viewModel.updateDescription(book.description)
+        viewModel.editBookId = bookId
+
+        titleEdit.setText(book.title)
+        authorEdit.setText(book.author)
+        priceEdit.setText(book.price.toString())
+        descriptionEdit.setText(book.description)
+
+        createBookButton.text = "変更"
     }
 
     //　戻るボタンを有効にする

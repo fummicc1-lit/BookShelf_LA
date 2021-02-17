@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
-import kotlinx.android.parcel.Parcelize
 import java.text.DateFormat
 import java.util.*
 
@@ -18,7 +17,7 @@ open class Book (
         var author: String = "",
         var price: Int = 0,
         var description: String = "",
-        var createdAt: Date = Date()
+        var updatedAt: Date = Date()
 ): RealmObject(), Parcelable {
         constructor(parcel: Parcel) : this(
                 parcel.readString() ?: "",
@@ -39,7 +38,7 @@ open class Book (
                 dest?.writeInt(price)
                 dest?.writeString(description)
 
-                val createdAtText = DateFormat.getDateInstance().format(createdAt)
+                val createdAtText = DateFormat.getDateInstance().format(updatedAt)
                 dest?.writeString(createdAtText)
         }
 
