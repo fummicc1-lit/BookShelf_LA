@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import dev.fummicc1.lit.bookshelf.R
 import dev.fummicc1.lit.bookshelf.datas.Book
@@ -23,13 +24,13 @@ class BookListActivity : AppCompatActivity() {
         val adapterListener = object : BookListAdapter.OnItemClickListener {
             override fun onItemClick(item: Book) {
                 val intent = Intent(this@BookListActivity, DetailBookActivity::class.java)
-                intent.putExtra("detail_book", item)
+                intent.putExtra("detail_book_id", item.id)
                 startActivity(intent)
             }
         }
 
         // RecyclerViewの設定
-        val adapter = BookListAdapter(this, viewModel.bookList, adapterListener)
+        val adapter = BookListAdapter(this, adapterListener)
         // GridLayoutManager...横と縦の両方にアイテムを並べる
         // LinearLayoutManager...横いっぱいにして縦にアイテムを並べる
         recyclerView.layoutManager = GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false)
@@ -41,7 +42,11 @@ class BookListActivity : AppCompatActivity() {
         }
 
         // エンプティステートの切り替え(RealmAdapterだと初期化以降に判断が難しいのでRoomに移行したら追加実装する)
-//        val isEmpty = viewModel.bookList.isEmpty()
-//        emptyStateTextView.visibility = if (isEmpty) View.VISIBLE else View.INVISIBLE
+
+        viewModel.bookList.observe(this, Observer {
+            adapter.updateBookList(it)
+            val isEmpty = it.isEmpty()
+            emptyStateTextView.visibility = if (isEmpty) View.VISIBLE else View.INVISIBLE
+        })
     }
 }

@@ -9,8 +9,6 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import dev.fummicc1.lit.bookshelf.R
 import dev.fummicc1.lit.bookshelf.datas.Book
-import io.realm.RealmRecyclerViewAdapter
-import io.realm.RealmResults
 import kotlinx.android.synthetic.main.item_book_list.view.*
 import java.text.DateFormat
 import java.time.LocalDateTime
@@ -19,9 +17,10 @@ import java.time.temporal.ChronoUnit
 
 class BookListAdapter(
     val context: Context,
-    val bookList: RealmResults<Book>,
     val listener: OnItemClickListener
-): RealmRecyclerViewAdapter<Book, BookListAdapter.ViewHolder>(bookList, true) {
+): RecyclerView.Adapter<BookListAdapter.ViewHolder>() {
+
+    var bookList: MutableList<Book> = mutableListOf()
 
     class ViewHolder(val view: View): RecyclerView.ViewHolder(view) {
         val titleTextView = view.titleTextView
@@ -39,9 +38,6 @@ class BookListAdapter(
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val book = bookList[position]
-        if (book == null) {
-            return
-        }
         holder.titleTextView.text = book.title
         holder.authorTextView.text = book.author
         val now = LocalDateTime.now()
@@ -61,6 +57,12 @@ class BookListAdapter(
         holder.view.setOnClickListener {
             listener.onItemClick(book)
         }
+    }
+
+    fun updateBookList(bookList: List<Book>) {
+        this.bookList.clear()
+        this.bookList.addAll(bookList)
+        notifyDataSetChanged()
     }
 
     interface OnItemClickListener {

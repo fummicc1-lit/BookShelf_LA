@@ -1,14 +1,19 @@
 package dev.fummicc1.lit.bookshelf.viewmodels
 
+import android.app.Application
 import android.os.Parcelable
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.fummicc1.lit.bookshelf.datas.Book
-import io.realm.Realm
+import dev.fummicc1.lit.bookshelf.datas.BookDatabase
 import kotlinx.android.parcel.Parcelize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-class DetailBookViewModel: ViewModel() {
+class DetailBookViewModel(application: Application): AndroidViewModel(application) {
 
     enum class Destination {
         COLLECTION,
@@ -16,9 +21,9 @@ class DetailBookViewModel: ViewModel() {
     }
 
     @Parcelize
-    data class EditDestinationModel(val bookId: String): Parcelable
+    data class EditDestinationModel(val bookId: Int): Parcelable
 
-    private val realm: Realm = Realm.getDefaultInstance()
+    private val database: BookDatabase = BookDatabase.getDataBase(application.applicationContext)
 
     private val _title: MutableLiveData<String> = MutableLiveData()
     private val _author: MutableLiveData<String> = MutableLiveData()
@@ -29,7 +34,7 @@ class DetailBookViewModel: ViewModel() {
 
     private val _move: MutableLiveData<Pair<Destination, Parcelable?>> = MutableLiveData()
 
-    var id: String? = null
+    var id: Int? = null
 
     val title: LiveData<String>
         get() = _title
@@ -65,17 +70,17 @@ class DetailBookViewModel: ViewModel() {
     }
 
     fun delete() {
-        if (id == null) {
-            return
-        }
-        realm.executeTransactionAsync {
-            it.where(Book::class.java)
-                .equalTo("id", id)
-                .findAll()
-                .apply {
-                    this.deleteAllFromRealm()
+        id?.let { id ->
+            viewModelScope.launch(Dispatchers.IO) {
+                val book = database.bookDao().get(id)
+                if (book == null) {
+                    return@launch
+                }
+                database.bookDao().delete(book)
+                this.launch(Dispatchers.Main) {
                     _move.postValue(Pair(Destination.COLLECTION, null))
                 }
+            }
         }
     }
 
@@ -85,4 +90,6 @@ class DetailBookViewModel: ViewModel() {
             _move.postValue(Pair(Destination.EDIT, destinationModel))
         }
     }
+
+    fun fetchBook(id: Int): LiveData<Book?> = runBlocking(Dispatchers.IO) { database.bookDao().observe(id) }
 }

@@ -102,7 +102,7 @@ class CreateBookActivity : AppCompatActivity() {
 
     // もし前の画面からBookIdを渡されていた場合、初期状態を変更する
     fun configureInitialStateIfBookExists() {
-        val bookId = intent.getParcelableExtra<DetailBookViewModel.EditDestinationModel>("book_id")?.bookId
+        val bookId = intent.getParcelableExtra<DetailBookViewModel.EditDestinationModel>("destination_model")?.bookId
         if (bookId == null) return
         val book = viewModel.fetchBook(bookId)
         if (book == null) return

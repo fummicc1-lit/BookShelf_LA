@@ -26,15 +26,16 @@ class DetailBookActivity : AppCompatActivity() {
 
         configureToolBar()
 
-        val book = intent.getParcelableExtra("detail_book") as? Book
-
-        if (book != null) {
-            viewModel.updateTitle(book.title)
-            viewModel.updateAuthor(book.author)
-            viewModel.updateprice(book.price)
-            viewModel.updateDescription(book.description)
-            viewModel.id = book.id
-        }
+        val bookId = intent.getIntExtra("detail_book_id", 0)
+        viewModel.fetchBook(bookId).observe(this, Observer { book ->
+            if (book != null) {
+                viewModel.updateTitle(book.title)
+                viewModel.updateAuthor(book.author)
+                viewModel.updateprice(book.price)
+                viewModel.updateDescription(book.description)
+                viewModel.id = book.id
+            }
+        })
 
         viewModel.title.observe(this, Observer {
             titleContentTextViewInDetail.text = it
@@ -57,7 +58,7 @@ class DetailBookActivity : AppCompatActivity() {
             when (it.first) {
                 DetailBookViewModel.Destination.EDIT -> {
                     val intent = Intent(this, CreateBookActivity::class.java)
-                    intent.putExtra("book_id", it.second)
+                    intent.putExtra("destination_model", it.second)
                     startActivity(intent)
                 }
                 DetailBookViewModel.Destination.COLLECTION -> finish()

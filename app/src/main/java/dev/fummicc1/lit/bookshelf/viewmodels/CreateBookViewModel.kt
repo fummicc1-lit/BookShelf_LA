@@ -1,14 +1,16 @@
 package dev.fummicc1.lit.bookshelf.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.*
 import dev.fummicc1.lit.bookshelf.datas.Book
-import io.realm.Realm
+import dev.fummicc1.lit.bookshelf.datas.BookDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.*
 
-class CreateBookViewModel: ViewModel() {
+class CreateBookViewModel(application: Application): AndroidViewModel(application) {
 
     enum class InputField {
         TITLE {
@@ -27,6 +29,8 @@ class CreateBookViewModel: ViewModel() {
         abstract fun errorMessage() : String
     }
 
+    private val database: BookDatabase = BookDatabase.getDataBase(application.applicationContext)
+
     private val _title: MutableLiveData<String> = MutableLiveData()
     private val _author: MutableLiveData<String> = MutableLiveData()
     private val _price: MutableLiveData<Int> = MutableLiveData()
@@ -34,9 +38,7 @@ class CreateBookViewModel: ViewModel() {
     private val _errorInput: MutableLiveData<InputField> = MutableLiveData()
     private val _onCompleteCreating: MutableLiveData<Unit> = MutableLiveData()
 
-    private val realm: Realm = Realm.getDefaultInstance()
-
-    var editBookId: String? = null
+    var editBookId: Int? = null
 
     val title: LiveData<String>
         get() = _title
@@ -67,18 +69,25 @@ class CreateBookViewModel: ViewModel() {
         _author.postValue(author)
     }
 
-    private fun updateBook(bookId: String) {
-        realm.executeTransactionAsync {
-            it.where(Book::class.java)
-                .equalTo("id", bookId)
-                .findFirst()
-                ?.let {
-                    it.title = _title.value ?: ""
-                    it.author = _author.value ?: ""
-                    it.price = _price.value ?: 0
-                    it.description = _description.value ?: ""
-                    it.updatedAt = Date()
-                }
+    private fun updateBook(bookId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val book = database.bookDao().get(bookId)
+
+            if (book == null) {
+                return@launch
+            }
+
+            book.title = _title.value ?: ""
+            book.author = _author.value ?: ""
+            book.price = _price.value ?: 0
+            book.description = _description.value ?: ""
+            book.updatedAt = Date()
+
+            database.bookDao().update(book)
+
+            this.launch(Dispatchers.Main) {
+                _onCompleteCreating.postValue(Unit)
+            }
         }
     }
 
@@ -93,28 +102,37 @@ class CreateBookViewModel: ViewModel() {
             editBookId?.let {
                 // 編集状態であればBookをアップデートする
                 updateBook(it)
-                _onCompleteCreating.postValue(Unit)
                 return
             }
             createBook()
-            _onCompleteCreating.postValue(Unit)
         }
     }
 
     fun createBook() {
-        realm.executeTransactionAsync {
-            val book = it.createObject(Book::class.java, UUID.randomUUID().toString())
-            book.title = _title.value!!
-            book.author = _author.value!!
-            book.price = _price.value!!
-            book.description = _description.value!!
+        val title = _title.value!!
+        val author = _author.value!!
+        val price = _price.value!!
+        val description = _description.value!!
+        val book = Book(
+            0,
+            title,
+            author,
+            price,
+            description,
+            Date()
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            database.bookDao().create(book)
+            this.launch(Dispatchers.Main) {
+                _onCompleteCreating.postValue(Unit)
+            }
         }
     }
 
-    fun fetchBook(id: String): Book? {
-        return realm.where(Book::class.java)
-            .equalTo("id", id)
-            .findFirst()
+    fun fetchBook(id: Int): Book? {
+        return runBlocking(Dispatchers.IO) {
+            database.bookDao().get(id)
+        }
     }
 
 

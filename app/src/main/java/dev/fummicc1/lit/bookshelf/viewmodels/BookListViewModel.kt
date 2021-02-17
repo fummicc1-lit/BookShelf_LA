@@ -1,26 +1,21 @@
 package dev.fummicc1.lit.bookshelf.viewmodels
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import dev.fummicc1.lit.bookshelf.datas.Book
-import io.realm.Realm
-import io.realm.RealmResults
+import dev.fummicc1.lit.bookshelf.datas.BookDatabase
+import kotlinx.coroutines.runBlocking
 
-class BookListViewModel: ViewModel() {
+class BookListViewModel(application: Application): AndroidViewModel(application) {
 
-    val bookList: RealmResults<Book>
+    val bookList: LiveData<List<Book>>
 
-    private val realm: Realm = Realm.getDefaultInstance()
+    private val database = BookDatabase.getDataBase(application.applicationContext)
 
     init {
-        realm.where(Book::class.java).apply {
-             bookList = this.findAllAsync()
+        bookList = runBlocking {
+            database.bookDao().observeAll()
         }
-    }
-
-    override fun onCleared() {
-        realm.close()
-        super.onCleared()
     }
 }
