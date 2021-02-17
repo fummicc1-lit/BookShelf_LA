@@ -18,9 +18,13 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
-class BookListAdapter(val context: Context, val bookList: RealmResults<Book>): RealmRecyclerViewAdapter<Book, BookListAdapter.ViewHolder>(bookList, true) {
+class BookListAdapter(
+    val context: Context,
+    val bookList: RealmResults<Book>,
+    val listener: OnItemClickListener
+): RealmRecyclerViewAdapter<Book, BookListAdapter.ViewHolder>(bookList, true) {
 
-    class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+    class ViewHolder(val view: View): RecyclerView.ViewHolder(view) {
         val titleTextView = view.titleTextView
         val authorTextView = view.authorTextView
         val timeTextView = view.timeTextView
@@ -54,5 +58,13 @@ class BookListAdapter(val context: Context, val bookList: RealmResults<Book>): R
             timeText = DateFormat.getDateInstance().format(book.createdAt)
         }
         holder.timeTextView.text = timeText
+
+        holder.view.setOnClickListener {
+            listener.onItemClick(book)
+        }
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(item: Book)
     }
 }

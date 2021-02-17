@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import dev.fummicc1.lit.bookshelf.datas.Book
 import io.realm.Realm
+import java.util.*
 
 class CreateBookViewModel: ViewModel() {
 
@@ -71,7 +72,7 @@ class CreateBookViewModel: ViewModel() {
                     checkInputAndShowError(description.value,  InputField.DESCRIPTION)
         ) {
             realm.executeTransactionAsync {
-                val book = it.createObject(Book::class.java)
+                val book = it.createObject(Book::class.java, UUID.randomUUID().toString())
                 book.title = title.value!!
                 book.author = author.value!!
                 book.price = price.value!!

@@ -10,7 +10,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Bookshelf">
-        <activity android:name=".activities.CreateBookActivity"></activity>
+        <activity android:name=".activities.DetailBookActivity"></activity>
+        <activity android:name=".activities.CreateBookActivity" />
         <activity android:name=".activities.BookListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
