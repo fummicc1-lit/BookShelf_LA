@@ -162,10 +162,13 @@ class CreateBookActivity : AppCompatActivity() {
                     titleEdit.setText(bookViewModel?.title ?: "")
                     authorEdit.setText(bookViewModel?.author ?: "")
                     val price = bookViewModel?.price
-                    price?.let {
+                    if (price != null) {
                         priceEdit.setText("$price")
                     }
-                    descriptionEdit.setText(bookViewModel?.description ?: "")
+                    val description = bookViewModel?.description
+                    if (description != null) {
+                        descriptionEdit.setText(description)
+                    }
                 }
             }
         }
