@@ -1,20 +1,29 @@
 package dev.fummicc1.lit.bookshelf.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import com.google.android.material.textfield.TextInputLayout
+import com.google.zxing.integration.android.IntentIntegrator
 import dev.fummicc1.lit.bookshelf.R
 import dev.fummicc1.lit.bookshelf.viewmodels.CreateBookViewModel
 import dev.fummicc1.lit.bookshelf.viewmodels.DetailBookViewModel
 import kotlinx.android.synthetic.main.activity_create_book.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CreateBookActivity : AppCompatActivity() {
 
     val viewModel: CreateBookViewModel by viewModels()
+
+    val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,11 +137,38 @@ class CreateBookActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflator = menuInflater
+        inflator.inflate(R.menu.create_book_menu, menu)
+        return true
+    }
+
     // Optionが選択された時に実行される
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             (android.R.id.home) -> finish()
+            (R.id.scan_barcode) -> {
+                IntentIntegrator(this).initiateScan()
+            }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        IntentIntegrator.parseActivityResult(requestCode, resultCode, data)?.let { result ->
+            scope.launch {
+                val bookViewModel = viewModel.fetchBook(result.contents)
+                withContext(Dispatchers.Main) {
+                    titleEdit.setText(bookViewModel?.title ?: "")
+                    authorEdit.setText(bookViewModel?.author ?: "")
+                    val price = bookViewModel?.price
+                    price?.let {
+                        priceEdit.setText("$price")
+                    }
+                    descriptionEdit.setText(bookViewModel?.description ?: "")
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }

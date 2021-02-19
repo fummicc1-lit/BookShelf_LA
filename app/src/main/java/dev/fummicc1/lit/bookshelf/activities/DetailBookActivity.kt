@@ -1,20 +1,16 @@
 package dev.fummicc1.lit.bookshelf.activities
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import dev.fummicc1.lit.bookshelf.R
-import dev.fummicc1.lit.bookshelf.datas.Book
 import dev.fummicc1.lit.bookshelf.viewmodels.DetailBookViewModel
 import kotlinx.android.synthetic.main.activity_detail_book.*
-import kotlinx.android.synthetic.main.item_book_list.*
 
 class DetailBookActivity : AppCompatActivity() {
 

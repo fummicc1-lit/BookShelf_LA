@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "dev.fummicc1.lit.bookshelf"
-        minSdkVersion 26
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -63,6 +63,7 @@ dependencies {
 
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
 
+    // Room Database
     def room_version = "2.2.6"
 
     implementation "androidx.room:room-runtime:$room_version"
@@ -70,4 +71,16 @@ dependencies {
 
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:$room_version"
+
+    // BarCode Scanner
+    implementation 'com.journeyapps:zxing-android-embedded:4.1.0'
+
+    // Api Client
+    implementation "com.google.code.gson:gson:2.8.6"
+    implementation "com.squareup.retrofit2:retrofit:2.9.0"
+    implementation "com.squareup.retrofit2:converter-gson:2.9.0"
+    implementation "com.squareup.okhttp3:okhttp:4.6.0"
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
 }

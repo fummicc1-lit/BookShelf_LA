@@ -1,16 +1,29 @@
 package dev.fummicc1.lit.bookshelf.viewmodels
 
 import android.app.Application
+import android.telecom.Call
 import androidx.lifecycle.*
+import com.google.gson.GsonBuilder
+import dev.fummicc1.lit.androidqrcodereader.BookService
+import dev.fummicc1.lit.bookshelf.Constants
 import dev.fummicc1.lit.bookshelf.datas.Book
 import dev.fummicc1.lit.bookshelf.datas.BookDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 
 class CreateBookViewModel(application: Application): AndroidViewModel(application) {
+
+    data class BookViewModel(
+        val title: String,
+        val author: String?,
+        val price: Int?,
+        val description: String?
+    )
 
     enum class InputField {
         TITLE {
@@ -142,5 +155,44 @@ class CreateBookViewModel(application: Application): AndroidViewModel(applicatio
             return false
         }
         return true
+    }
+
+    suspend fun fetchBook(isbnNumber: String): BookViewModel?  {
+        val gson = GsonBuilder().create()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(Constants.bookApiBaseUrl)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        val bookService = retrofit.create(BookService::class.java)
+
+        val bookResponse= bookService.getBook("isbn:${isbnNumber}")
+        val book = bookResponse.items?.firstOrNull()
+        if (book == null) {
+            return null
+        }
+
+        // BookViewModelを作成
+        val bookViewModel = BookViewModel(
+            book.volumeInfo.title,
+            book.volumeInfo.authors.firstOrNull(),
+            book.saleInfo?.ratailPrice?.getPrice(),
+            book.volumeInfo.description
+        )
+
+        // ViewModelのデータを更新
+        viewModelScope.launch(Dispatchers.Main) {
+            updateTitle(book.volumeInfo.title)
+            updateAuthor(book.volumeInfo.authors.first())
+            book.saleInfo?.ratailPrice?.getPrice()?.let { price ->
+                updatePrice(price)
+            }
+            book.volumeInfo.description?.let { description ->
+                updateDescription(description)
+            }
+        }
+
+        return bookViewModel
     }
 }
