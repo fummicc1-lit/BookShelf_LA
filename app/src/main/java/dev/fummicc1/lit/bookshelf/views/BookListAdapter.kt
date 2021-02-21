@@ -47,7 +47,7 @@ class BookListAdapter(
         val timeText: String
         if (hour > 0 && hour < 24) {
             timeText = "${hour}時間前"
-        } else if (minute >= 0 && minute < 60) {
+        } else if (minute < 60) {
             timeText = "${minute}分前"
         } else {
             timeText = DateFormat.getDateInstance().format(book.updatedAt)
